@@ -13,13 +13,13 @@ GMPLIBDIR ?= $(shell pkg-config --libs-only-L gmp 2>/dev/null | sed 's/-L//' | x
 # Fallback to common locations if pkg-config fails
 ifeq ($(GMPINCDIR),)
   GMPINCDIR ?= $(shell \
-    for dir in /opt/homebrew/opt/gmp/include /usr/local/include /usr/include; do \
+    for dir in /opt/homebrew/opt/gmp/include /opt/homebrew/include /usr/local/include /usr/include /usr/include/x86_64-linux-gnu; do \
       [ -f $$dir/gmp.h ] && echo $$dir && break; \
     done)
 endif
 ifeq ($(GMPLIBDIR),)
   GMPLIBDIR ?= $(shell \
-    for dir in /opt/homebrew/opt/gmp/lib /usr/local/lib /usr/lib; do \
+    for dir in /opt/homebrew/opt/gmp/lib /opt/homebrew/lib /usr/local/lib /usr/lib /usr/lib/x86_64-linux-gnu; do \
       [ -f $$dir/libgmp* ] && echo $$dir && break; \
     done)
 endif
@@ -28,7 +28,7 @@ include ../../Makefile.inc
 
 #OPTS=-fno-defer-pop
 ROOTDIR:=../..
-CFLAGS=-Dunix -O3 $(OPTS) $(ADDDYNLIBCFLAGS) -I$(CAMLRT) -I${GMPINCDIR}
+CFLAGS=-Dunix -O3 $(OPTS) $(ADDDYNLIBCFLAGS) -I$(CAMLRT) $(if $(GMPINCDIR),-I${GMPINCDIR},)
 #CFLAGS=-Dunix -O2 $(OPTS) $(ADDDYNLIBCFLAGS) -I$(INCDIR) -I ${GMPDIR}
 
 MOSMLTOOLS=camlrunm $(TOOLDIR)
@@ -48,7 +48,7 @@ intinf.o: intinf.c
 	$(CC) $(CFLAGS) -c -o intinf.o intinf.c
 
 libmgmp.so: intinf.o
-	$(DYNLD) -o libmgmp.so intinf.o -L$(GMPLIBDIR) -lgmp -lc
+	$(DYNLD) -o libmgmp.so intinf.o $(if $(GMPLIBDIR),-L$(GMPLIBDIR),) -lgmp -lc
 
 test:
 	echo $(CURDIR)
