@@ -4,10 +4,25 @@
 # The GNU GMP multiprecision package must be installed.
 
 # Where to find GMP header file and compiled library
+# Uses pkg-config if available, otherwise falls back to common default locations.
+# Can be overridden: make GMPINCDIR=/path/to/gmp/include GMPLIBDIR=/path/to/gmp/lib
 
-#GMPDIR=${HOME}/c/gmp-2.0.2
-GMPINCDIR=/usr/local/include
-GMPLIBDIR=/usr/local/lib
+GMPINCDIR ?= $(shell pkg-config --cflags-only-I gmp 2>/dev/null | sed 's/-I//' | xargs)
+GMPLIBDIR ?= $(shell pkg-config --libs-only-L gmp 2>/dev/null | sed 's/-L//' | xargs)
+
+# Fallback to common locations if pkg-config fails
+ifeq ($(GMPINCDIR),)
+  GMPINCDIR ?= $(shell \
+    for dir in /opt/homebrew/opt/gmp/include /usr/local/include /usr/include; do \
+      [ -f $$dir/gmp.h ] && echo $$dir && break; \
+    done)
+endif
+ifeq ($(GMPLIBDIR),)
+  GMPLIBDIR ?= $(shell \
+    for dir in /opt/homebrew/opt/gmp/lib /usr/local/lib /usr/lib; do \
+      [ -f $$dir/libgmp* ] && echo $$dir && break; \
+    done)
+endif
 
 include ../../Makefile.inc
 
