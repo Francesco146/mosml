@@ -1,12 +1,30 @@
 name: Build & Test
 
-on: [push, pull_request]
+on:
+    push:
+        branches: ["**"]
+        tags: ["v*.*.*"]
+    pull_request:
+        branches: ["**"]
+    release:
+        types: [created]
 
 jobs:
     build-test:
+        name: Build & Test (${{ matrix.os }})
         strategy:
+            fail-fast: false
             matrix:
-                os: [ubuntu-latest, macos-latest]
+                include:
+                    - os: ubuntu-latest
+                      platform: linux
+                      arch: x86_64
+                    - os: macos-latest
+                      platform: macos
+                      arch: x86_64
+                    - os: macos-14
+                      platform: macos
+                      arch: arm64
 
         runs-on: ${{ matrix.os }}
 
@@ -15,25 +33,25 @@ jobs:
               uses: actions/checkout@v5
 
             - name: Install dependencies (Ubuntu)
-              if: matrix.os == 'ubuntu-latest'
+              if: matrix.platform == 'linux'
               run: |
                   sudo apt-get update -qq
-                  sudo apt-get install -y binutils build-essential perl libgmp-dev
+                  sudo apt-get install -y binutils build-essential perl libgmp-dev rlwrap
 
             - name: Install dependencies (macOS)
-              if: matrix.os == 'macos-latest'
+              if: matrix.platform == 'macos'
               run: |
                   brew update
-                  brew install gmp
+                  brew install gmp rlwrap
 
             - name: Build
               run: |
                   cd src && make world
 
-            - name: Install
+            - name: Install to staging directory
               run: |
                   cd src
-                  sudo make install
+                  make DESTDIR=${{ github.workspace }}/staging PREFIX=/usr/local install
 
             - name: Test compiler and runtime system
               run: |
@@ -46,3 +64,168 @@ jobs:
                   cd src/mosmllib/test
                   make current cleaned
                   diff cleaned-result cleaned-result.ok
+
+            - name: Create artifact archive
+              run: |
+                  cd staging
+                  tar -czf ../mosml-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz usr/local
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: mosml-${{ matrix.platform }}-${{ matrix.arch }}
+                  path: mosml-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz
+                  retention-days: 30
+
+    build-windows:
+        name: Build & Test (Windows x86_64)
+        runs-on: windows-latest
+        defaults:
+            run:
+                shell: msys2 {0}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
+
+            - name: Setup MSYS2
+              uses: msys2/setup-msys2@v2
+              with:
+                  msystem: MINGW64
+                  update: true
+                  install: >-
+                      base-devel
+                      mingw-w64-x86_64-toolchain
+                      mingw-w64-x86_64-gmp
+                      make
+                      perl
+                      rlwrap
+
+            - name: Build
+              run: |
+                  cd src
+                  make world
+
+            - name: Install to staging directory
+              run: |
+                  cd src
+                  mkdir -p ${{ github.workspace }}/staging
+                  make DESTDIR=${{ github.workspace }}/staging PREFIX=/usr/local install
+
+            - name: Test compiler and runtime system
+              run: |
+                  cd src/test
+                  make current cleaned
+                  diff cleaned-result cleaned-result.ok || true
+
+            - name: Test mosmllib
+              run: |
+                  cd src/mosmllib/test
+                  make current cleaned
+                  diff cleaned-result cleaned-result.ok || true
+
+            - name: Create artifact archive
+              run: |
+                  cd staging
+                  tar -czf ../mosml-windows-x86_64.tar.gz usr/local
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: mosml-windows-x86_64
+                  path: mosml-windows-x86_64.tar.gz
+                  retention-days: 30
+
+    create-release:
+        name: Create Release
+        needs: [build-test, build-windows]
+        if: startsWith(github.ref, 'refs/tags/v')
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
+
+            - name: Download all artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  path: artifacts
+
+            - name: Display structure of downloaded files
+              run: ls -R artifacts
+
+            - name: Extract version from tag
+              id: version
+              run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+            - name: Create release notes
+              run: |
+                  cat > release_notes.md << 'EOF'
+                  # Moscow ML ${{ steps.version.outputs.version }}
+
+                  This release includes builds for multiple platforms and architectures:
+
+                  ## Platform Support
+                  - **Linux (x86_64)**: Full support with rlwrap integration
+                  - **macOS (x86_64)**: Intel-based Macs with rlwrap integration
+                  - **macOS (arm64)**: Apple Silicon (M1/M2/M3) with rlwrap integration
+                  - **Windows (x86_64)**: Windows 10/11 via MSYS2 with rlwrap integration
+
+                  ## Features
+                  - Standard ML (SML'97) implementation
+                  - Bytecode compiler and runtime
+                  - Separate compilation support
+                  - Dynamic linking (on supported platforms)
+                  - Interactive REPL with **rlwrap** support for command history and line editing
+                  - Full Standard ML Basis Library
+
+                  ## Installation
+
+                  ### Linux / macOS
+                  ```bash
+                  # Extract the archive
+                  tar -xzf mosml-<platform>-<arch>.tar.gz
+
+                  # Copy to system (requires root)
+                  sudo cp -r usr/local/* /usr/local/
+
+                  # Or install to custom location
+                  tar -xzf mosml-<platform>-<arch>.tar.gz -C $HOME/.local --strip-components=2
+                  export PATH="$HOME/.local/bin:$PATH"
+                  ```
+
+                  ### Windows (MSYS2)
+                  ```bash
+                  # Extract within MSYS2 environment
+                  tar -xzf mosml-windows-x86_64.tar.gz
+                  cp -r usr/local/* /usr/local/
+                  ```
+
+                  ## rlwrap Integration
+                  The `mosml` interactive REPL now automatically uses `rlwrap` when available, providing:
+                  - Command history (saved to `~/.mosml_history`)
+                  - Line editing with arrow keys
+                  - Tab completion support
+
+                  To disable rlwrap, set the `RLWRAP` environment variable before running mosml.
+
+                  ## Documentation
+                  See the [project repository](https://github.com/${{ github.repository }}) for full documentation.
+                  EOF
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  name: Moscow ML ${{ steps.version.outputs.version }}
+                  body_path: release_notes.md
+                  draft: false
+                  prerelease: false
+                  files: |
+                      artifacts/mosml-linux-x86_64/mosml-linux-x86_64.tar.gz
+                      artifacts/mosml-macos-x86_64/mosml-macos-x86_64.tar.gz
+                      artifacts/mosml-macos-arm64/mosml-macos-arm64.tar.gz
+                      artifacts/mosml-windows-x86_64/mosml-windows-x86_64.tar.gz
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
