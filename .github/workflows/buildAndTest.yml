@@ -48,10 +48,10 @@ jobs:
               run: |
                   cd src && make world
 
-            - name: Install to staging directory
+            - name: Install
               run: |
                   cd src
-                  make DESTDIR=${{ github.workspace }}/staging PREFIX=/usr/local install
+                  sudo make install
 
             - name: Test compiler and runtime system
               run: |
@@ -64,6 +64,11 @@ jobs:
                   cd src/mosmllib/test
                   make current cleaned
                   diff cleaned-result cleaned-result.ok
+
+            - name: Create staging directory for artifact
+              run: |
+                  cd src
+                  make DESTDIR=${{ github.workspace }}/staging PREFIX=/usr/local install
 
             - name: Create artifact archive
               run: |
@@ -106,11 +111,10 @@ jobs:
                   cd src
                   make world
 
-            - name: Install to staging directory
+            - name: Install
               run: |
                   cd src
-                  mkdir -p ${{ github.workspace }}/staging
-                  make DESTDIR=${{ github.workspace }}/staging PREFIX=/usr/local install
+                  make install PREFIX=/mingw64
 
             - name: Test compiler and runtime system
               run: |
@@ -123,6 +127,12 @@ jobs:
                   cd src/mosmllib/test
                   make current cleaned
                   diff cleaned-result cleaned-result.ok || true
+
+            - name: Create staging directory for artifact
+              run: |
+                  cd src
+                  mkdir -p ${{ github.workspace }}/staging
+                  make DESTDIR=${{ github.workspace }}/staging PREFIX=/usr/local install
 
             - name: Create artifact archive
               run: |
