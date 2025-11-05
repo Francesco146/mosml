@@ -19,7 +19,7 @@ void sig_handler()
   longjmp(failure, 1);
 }
 
-main()
+int main(int argc, char ** argv)
 {
 #define ARRSIZE 100
   long n[ARRSIZE];

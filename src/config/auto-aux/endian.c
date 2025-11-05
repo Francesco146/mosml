@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-main()
+int main(int argc, char ** argv)
 {
   long n[2];
   char * p;

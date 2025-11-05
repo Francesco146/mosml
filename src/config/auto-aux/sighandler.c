@@ -1,8 +1,8 @@
 #include <signal.h>
 
-int main()
+int main(int argc, char ** argv)
 {
-  SIGRETURN (*old)();
+  sig_t old;
   old = signal(SIGQUIT, SIG_DFL);
   return 0;
 }

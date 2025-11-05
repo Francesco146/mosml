@@ -95,7 +95,7 @@ int speedtest(p)
   return total;
 }
 
-main()
+int main(int argc, char ** argv)
 {
   long n[1001];
   int speed_aligned, speed_unaligned;
