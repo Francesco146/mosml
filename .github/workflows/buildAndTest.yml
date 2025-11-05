@@ -1,57 +1,48 @@
 name: Build & Test
 
-on:
-  pull_request:
-
-  push:
-    branches:
-      - master
-      - devel
-
+on: [push, pull_request]
 
 jobs:
+    build-test:
+        strategy:
+            matrix:
+                os: [ubuntu-latest, macos-latest]
 
-  build-test:
+        runs-on: ${{ matrix.os }}
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
 
-    runs-on: ${{ matrix.os }}
+            - name: Install dependencies (Ubuntu)
+              if: matrix.os == 'ubuntu-latest'
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y binutils build-essential perl libgmp-dev
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+            - name: Install dependencies (macOS)
+              if: matrix.os == 'macos-latest'
+              run: |
+                  brew update
+                  brew install gmp
 
-      - name: Install dependencies (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y binutils build-essential perl libgmp-dev
+            - name: Build
+              run: |
+                  cd src && make world
 
-      - name: Install dependencies (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew update
-          brew install gmp
+            - name: Install
+              run: |
+                  cd src
+                  sudo make install
 
-      - name: Build
-        run: |
-          cd src && make world
+            - name: Test compiler and runtime system
+              run: |
+                  cd src/test
+                  make current cleaned
+                  diff cleaned-result cleaned-result.ok
 
-      - name: Install
-        run: |
-          cd src
-          sudo make install
-
-      - name: Test compiler and runtime system
-        run: |
-          cd src/test
-          make current cleaned
-          diff cleaned-result cleaned-result.ok
-
-      - name: Test mosmllib
-        run: |
-          cd src/mosmllib/test
-          make current cleaned
-          diff cleaned-result cleaned-result.ok
+            - name: Test mosmllib
+              run: |
+                  cd src/mosmllib/test
+                  make current cleaned
+                  diff cleaned-result cleaned-result.ok
