@@ -5,10 +5,21 @@ mosmlbin=BINDIR
 includes=""
 options="-conservative"
 
+# Check if rlwrap is available and stdin is a terminal
+use_rlwrap=""
+if [ -t 0 ] && command -v rlwrap >/dev/null 2>&1; then
+  use_rlwrap="rlwrap -a -N -H $HOME/.mosml_history -s 1000"
+fi
+
+# Disable rlwrap if RLWRAP environment variable is already set
+if [ -n "$RLWRAP" ]; then
+  use_rlwrap=""
+fi
+
 while : ; do
   case $1 in
     "")
-      exec $mosmlbin/camlrunm $stdlib/mosmltop -stdlib $stdlib $includes $options;;
+      exec $use_rlwrap $mosmlbin/camlrunm $stdlib/mosmltop -stdlib $stdlib $includes $options;;
     -I|-include)
       includes="$includes -I $2"
       shift;;
@@ -36,7 +47,7 @@ while : ; do
     -*)
       echo "Unknown option \"$1\", ignored" >&2;;
     *)
-      exec $mosmlbin/camlrunm $stdlib/mosmltop -stdlib $stdlib $includes $options $* ;;
+      exec $use_rlwrap $mosmlbin/camlrunm $stdlib/mosmltop -stdlib $stdlib $includes $options $* ;;
   esac
   shift
 done
