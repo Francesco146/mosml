@@ -134,20 +134,20 @@ basisdynlib_uninstall:
 
 # Remove all generated files
 clean:
-	cd config; $(MAKE) clean
-	cd runtime; $(MAKE) clean
-	cd launch; $(MAKE) clean
-	cd mosmlyac; $(MAKE) clean
-	cd mosmllib; $(MAKE) clean
-	cd compiler; $(MAKE) clean
-	cd toolssrc; $(MAKE) clean
-	cd lex; $(MAKE) clean
-	cd test; $(MAKE) clean
-	cd mosmllib/test; $(MAKE) clean
-	cd ../examples; $(MAKE) clean	
-	cd dynlibs; $(MAKE) clean
+	cd config && $(MAKE) clean
+	cd runtime && $(MAKE) clean
+	cd launch && $(MAKE) clean
+	cd mosmlyac && $(MAKE) clean
+	cd mosmllib && $(MAKE) clean
+	cd compiler && $(MAKE) clean
+	cd toolssrc && $(MAKE) clean
+	cd lex && $(MAKE) clean
+	cd test && $(MAKE) clean
+	cd mosmllib/test && $(MAKE) clean
+	(cd ../examples && $(MAKE) clean)
+	cd dynlibs && $(MAKE) clean
 	rm -f camlrunm$(EXE)
-	cd doc; $(MAKE) clean
+	cd doc && $(MAKE) clean
 
 dynlibs:
 	cd dynlibs; $(MAKE)
