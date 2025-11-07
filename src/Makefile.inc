@@ -78,7 +78,7 @@ ifeq ($(UNAME_S),Darwin) 	# For MacOS X, use the same as Linux except DYNDL
 	DYNLD=$(LD) -bundle -undefined dynamic_lookup
 endif
 ifeq ($(UNAME_S),Cross_W32)
-	CC=i586-mingw32msvc-gcc
+	CC=i686-w64-mingw32-gcc
 	CPP=cpp -P -traditional -Umsdos -Uunix -Dwin32 -Wno-invalid-pp-token
 	ADDRUNLIBS=
 	ADDRUNCFLAGS=
