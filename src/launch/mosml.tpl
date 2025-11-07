@@ -8,7 +8,7 @@ options="-conservative"
 # Check if rlwrap is available and stdin is a terminal
 use_rlwrap=""
 if [ -t 0 ] && command -v rlwrap >/dev/null 2>&1; then
-  use_rlwrap="rlwrap -a -N -H $HOME/.mosml_history -s 1000"
+  use_rlwrap="rlwrap -a -H $HOME/.mosml_history -s 1000"
 else
   echo "Warning: rlwrap not found or input is not a terminal; running without rlwrap." >&2
   echo "For better command line editing, consider installing rlwrap." >&2
