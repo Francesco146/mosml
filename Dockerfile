@@ -19,7 +19,8 @@ COPY . /mosml-src
 
 # Build Moscow ML
 WORKDIR /mosml-src/src
-RUN make world && \
+RUN make clean && \
+    make world && \
     make DESTDIR=/mosml-install PREFIX=/usr/local install
 
 # Runtime stage - minimal image with only runtime dependencies
