@@ -8,6 +8,8 @@ services:
                 - mosml:latest
                 - ghcr.io/francesco146/mosml:latest
         platform: linux/amd64 # needed for Apple Silicon Macs
+        environment:
+            - XDG_DATA_HOME=/workspace/.local/share
         volumes:
             - ./container-shared-dir:/workspace
         container_name: mosml
