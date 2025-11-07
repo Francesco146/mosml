@@ -9,6 +9,10 @@ options="-conservative"
 use_rlwrap=""
 if [ -t 0 ] && command -v rlwrap >/dev/null 2>&1; then
   use_rlwrap="rlwrap -a -N -H $HOME/.mosml_history -s 1000"
+else
+  echo "Warning: rlwrap not found or input is not a terminal; running without rlwrap." >&2
+  echo "For better command line editing, consider installing rlwrap." >&2
+  use_rlwrap=""
 fi
 
 # Disable rlwrap if RLWRAP environment variable is already set
