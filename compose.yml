@@ -1,0 +1,15 @@
+services:
+    mosml:
+        image: ghcr.io/francesco146/mosml:latest
+        build:
+            context: .
+            dockerfile: Dockerfile
+            tags:
+                - mosml:latest
+                - ghcr.io/francesco146/mosml:latest
+        platform: linux/amd64 # needed for Apple Silicon Macs
+        volumes:
+            - ./container-shared-dir:/workspace
+        container_name: mosml
+        stdin_open: true
+        tty: true
