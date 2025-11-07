@@ -133,6 +133,7 @@ jobs:
                   - **Linux (x86_64)**: Full support with rlwrap integration
                   - **macOS (x86_64)**: Intel-based Macs with rlwrap integration
                   - **macOS (arm64)**: Apple Silicon (M1/M2/M3) with rlwrap integration
+                  - **Windows (x86_64)**: Native Windows build
 
                   ## Features
                   - Standard ML (SML'97) implementation
@@ -159,7 +160,7 @@ jobs:
 
                   ## rlwrap Integration
                   The `mosml` interactive REPL now automatically uses `rlwrap` when available, providing:
-                  - Command history (saved to `~/.mosml_history`)
+                  - Command history (saved to $XDG_DATA_HOME/mosml/history or $HOME/.local/share/mosml/history, if XDG_DATA_HOME is not set)
                   - Line editing with arrow keys
                   - Tab completion support
 
