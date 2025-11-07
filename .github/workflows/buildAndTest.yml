@@ -36,7 +36,7 @@ jobs:
               if: matrix.platform == 'linux'
               run: |
                   sudo apt-get update -qq
-                  sudo apt-get install -y binutils build-essential perl libgmp-dev rlwrap
+                  sudo apt-get install -y binutils build-essential perl libgmp-dev rlwrap mingw-w64
 
             - name: Install dependencies (macOS)
               if: matrix.platform == 'macos'
@@ -75,11 +75,27 @@ jobs:
                   cd staging
                   tar -czf ../mosml-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz usr/local
 
+            - name: Cross-compile Windows binaries (on Linux)
+              if: matrix.platform == 'linux'
+              run: |
+                  mkdir -p win-root
+                  (cd src && make DESTDIR=`pwd`/../win-root PREFIX=/mosml cross_w32)
+                  cd win-root
+                  zip -r ../mosml-windows-x86_64.zip mosml
+
             - name: Upload build artifacts
               uses: actions/upload-artifact@v4
               with:
                   name: mosml-${{ matrix.platform }}-${{ matrix.arch }}
                   path: mosml-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz
+                  retention-days: 30
+
+            - name: Upload Windows build artifact
+              if: matrix.platform == 'linux'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: mosml-windows-x86_64
+                  path: mosml-windows-x86_64.zip
                   retention-days: 30
 
     create-release:
@@ -164,5 +180,6 @@ jobs:
                       artifacts/mosml-linux-x86_64/mosml-linux-x86_64.tar.gz
                       artifacts/mosml-macos-x86_64/mosml-macos-x86_64.tar.gz
                       artifacts/mosml-macos-arm64/mosml-macos-arm64.tar.gz
+                      artifacts/mosml-windows-x86_64/mosml-windows-x86_64.zip
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
