@@ -28,6 +28,9 @@ win-root/
 doc/
 examples/
 
+# docker shared volumes
+container-shared-dir
+
 # Created by https://www.toptal.com/developers/gitignore/api/linux,macos,windows,c,standardml,latex
 # Edit at https://www.toptal.com/developers/gitignore?templates=linux,macos,windows,c,standardml,latex
 
