@@ -35,6 +35,7 @@ world:
 
 # Cross compilation to Win
 cross_w32:
+	cd runtime; $(MAKE) clean
 	cd config; $(MAKE) all
 	cd runtime; $(MAKE) all
 	cp runtime/camlrunm$(EXE) .
@@ -61,7 +62,7 @@ cross_w32:
 	$(MAKE) -C mosmllib UNAME_S=Cross_W32 install
 	$(MAKE) -C compiler UNAME_S=Cross_W32 install_w32
 	$(MAKE) -C toolssrc UNAME_S=Cross_W32 install
-	$(MAKE) -C lex UNAME_S=Cross_W32 install
+	$(MAKE) -C lex UNAME_S=Cross_W32 install_w32
 	$(MAKE) -C launch.w32 UNAME_S=Cross_W32 install
 	$(MAKE) -C doc install
 	$(INSTALL_DATA) ../install.txt.w32 $(DESTDIR)$(PREFIX)

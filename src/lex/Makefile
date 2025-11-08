@@ -39,6 +39,10 @@ clean:
 install:
 	${INSTALL_DATA} mosmllex $(DESTDIR)$(LIBDIR)
 
+install_w32:
+	cat ../launch.w32/header.exe mosmllex > $(DESTDIR)$(BINDIR)/mosmllex.exe
+	chmod a+x $(DESTDIR)$(BINDIR)/mosmllex.exe
+
 uninstall:
 	${UNINSTALL_DATA} $(DESTDIR)$(LIBDIR)/mosmllex
 
