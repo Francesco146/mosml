@@ -35,7 +35,6 @@ world:
 
 # Cross compilation to Win
 cross_w32:
-	cd runtime; $(MAKE) clean
 	cd config; $(MAKE) all
 	cd runtime; $(MAKE) all
 	cp runtime/camlrunm$(EXE) .
