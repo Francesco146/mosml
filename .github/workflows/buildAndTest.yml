@@ -79,7 +79,7 @@ jobs:
               if: matrix.platform == 'linux'
               run: |
                   mkdir -p win-root
-                  (cd src && make DESTDIR=`pwd`/../win-root PREFIX=/mosml cross_w32)
+                  (cd src && make DESTDIR="$(pwd)/../win-root" PREFIX=/mosml cross_w32)
                   cd win-root
                   zip -r ../mosml-windows-x86_64.zip mosml
 
@@ -120,7 +120,7 @@ jobs:
 
             - name: Extract version from tag
               id: version
-              run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+              run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
 
             - name: Create release notes
               run: |
