@@ -16,7 +16,7 @@ Current status of the resulting installer is:
 How to build an installer step by step:
 ---------------------------------------
 
-1. Prepare a binary distrubution of mosml (ie. cross-compile everything)
+1. Prepare a binary distribution of mosml (ie. cross-compile everything)
 
 2. Place binary distribution in "mosml" subdirectory.
 
@@ -24,4 +24,4 @@ How to build an installer step by step:
 
 4. Run Inno Setup on mosml.iss
 
-5. The installer can now be found the directory "Output"
+5. The installer can now be found in the directory "Output"
