@@ -20,7 +20,7 @@ endif
 ifeq ($(GMPLIBDIR),)
   GMPLIBDIR ?= $(shell \
     for dir in /opt/homebrew/opt/gmp/lib /opt/homebrew/lib /usr/local/lib /usr/lib /usr/lib/x86_64-linux-gnu; do \
-      [ -f $$dir/libgmp* ] && echo $$dir && break; \
+      ls "$$dir"/libgmp* > /dev/null 2>&1 && echo "$$dir" && break; \
     done)
 endif
 
