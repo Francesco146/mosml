@@ -1,0 +1,40 @@
+# This Dockerfile sets up a cross-compilation environment for building Windows (win32) binaries
+# on an Ubuntu 14.04 (Trusty) base image using the i386 architecture.
+# Hopefully this will work in the future, i had no luck compiling on amd64 ubuntu images.
+
+FROM --platform=linux/386 ubuntu:14.04
+
+RUN echo "deb http://archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse" > /etc/apt/sources.list && \
+    echo "deb http://archive.ubuntu.com/ubuntu/ trusty-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://archive.ubuntu.com/ubuntu/ trusty-backports main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://security.ubuntu.com/ubuntu trusty-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    binutils \
+    build-essential \
+    libgmp-dev \
+    make \
+    mingw32 \
+    mingw32-binutils \
+    mingw32-runtime \
+    perl \
+    unzip \
+    zip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV CC=gcc \
+    PATH=/usr/bin:${PATH}
+
+COPY . /mosml
+WORKDIR /mosml
+
+COPY build-win.sh /usr/local/bin/build-win.sh
+RUN chmod +x /usr/local/bin/build-win.sh
+
+# Build: docker build -t mosml-win-builder --platform=linux/386 -f Dockerfile.w32 .
+# When running the container, mount a host directory on /out to receive the zip.
+# Example (fish shell): docker run --rm -v (pwd)/out:/out mosml-win-builder
+# Example (bash/zsh):   docker run --rm -v $(pwd)/out:/out mosml-win-builder
+# Example (PowerShell): docker run --rm -v ${PWD}/out:/out mosml-win-builder
+ENTRYPOINT ["/usr/local/bin/build-win.sh"]
