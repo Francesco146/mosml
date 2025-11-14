@@ -46,7 +46,7 @@ WORKDIR /workspace
 # Add labels
 LABEL org.opencontainers.image.title="Moscow ML"
 LABEL org.opencontainers.image.description="Moscow ML is a light-weight implementation of Standard ML (SML), a strict functional language widely used in teaching and research."
-LABEL org.opencontainers.image.source="https://github.com/Francesco146/mosml"
+LABEL org.opencontainers.image.source="https://github.com/kfl/mosml"
 
 # Default command is interactive REPL
 ENTRYPOINT ["mosml"]
