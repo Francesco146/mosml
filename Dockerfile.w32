@@ -29,8 +29,14 @@ ENV CC=gcc \
 COPY . /mosml
 WORKDIR /mosml
 
-COPY build-win.sh /usr/local/bin/build-win.sh
-RUN chmod +x /usr/local/bin/build-win.sh
+# Avoid copying `build-win.sh` twice and to be robust when `/mosml`
+# is later mounted from the host, create a tiny wrapper in the image
+# filesystem that execs the real script inside `/mosml` at runtime.
+# This ensures the entrypoint remains executable even if the host
+# mount masks permissions or replaces the file.
+RUN printf '%s\n' '#!/bin/sh' 'exec /bin/bash /mosml/build-win.sh "$@"' \
+    > /usr/local/bin/build-win.sh && \
+    chmod +x /usr/local/bin/build-win.sh
 
 # Build: docker build -t mosml-win-builder --platform=linux/386 -f Dockerfile.w32 .
 # When running the container, mount a host directory on /out to receive the zip.
