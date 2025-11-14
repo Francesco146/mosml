@@ -29,19 +29,19 @@ local
 in
     (* NOT the SML BL conversion funs *)
     prim_val toInt   : word -> int = 1 "boxed_uint64_toword";
-    prim_val toIntX  : word -> int = 1 "boxed_uint64_toword";
+    prim_val toIntX  : word -> int = 1 "boxed_uint64_toword_signed";
     prim_val fromInt : int -> word = 1 "boxed_uint64_fromword";
 
     prim_val toLargeInt   : word -> int = 1 "boxed_uint64_toword";
-    prim_val toLargeIntX  : word -> int = 1 "boxed_uint64_toword";
+    prim_val toLargeIntX  : word -> int = 1 "boxed_uint64_toword_signed";
     prim_val fromLargeInt : int -> word = 1 "boxed_uint64_fromword";
 
     prim_val toLargeWord   : word -> Word.word = 1 "boxed_uint64_toword";
-    prim_val toLargeWordX  : word -> Word.word = 1 "boxed_uint64_toword";
+    prim_val toLargeWordX  : word -> Word.word = 1 "boxed_uint64_toword_signed";
     prim_val fromLargeWord : Word.word -> word = 1 "boxed_uint64_fromword";
 
     prim_val toLarge   : word -> Word.word = 1 "boxed_uint64_toword"
-    prim_val toLargeX  : word -> Word.word = 1 "boxed_uint64_toword"
+    prim_val toLargeX  : word -> Word.word = 1 "boxed_uint64_toword_signed"
     prim_val fromLarge : Word.word -> word = 1 "boxed_uint64_fromword";
 
     val ZERO = fromInt 0
