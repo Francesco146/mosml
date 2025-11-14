@@ -2,12 +2,13 @@ name: Build & Test
 
 on:
     push:
-        branches: ["**"]
+        branches: ["main", "develop"]
         tags: ["v*.*.*"]
     pull_request:
-        branches: ["**"]
+        branches: ["main", "develop"]
     release:
         types: [created]
+    workflow_dispatch:
 
 jobs:
     build-test:
@@ -230,7 +231,7 @@ jobs:
                   - Line editing with arrow keys
                   - Tab completion support
 
-                  To disable rlwrap, set the `RLWRAP` environment variable before running mosml.
+                  To disable rlwrap, set the `DISABLE_RLWRAP=1` environment variable before running mosml.
 
                   ## Documentation
                   See the [project repository](https://github.com/${{ github.repository }}) for full documentation.
