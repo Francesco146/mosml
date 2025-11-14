@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -euo pipefail
 
 # Cross-build helper for Windows artifacts.
@@ -150,13 +150,19 @@ run_cmd mkdir -p "$OUT_DIR"
 ZIP_PATH="$OUT_DIR/mosml-windows-x86_64.zip"
 printf "Creating zip archive %s\n" "$ZIP_PATH"
 
-# Dry-run prints the command and skips runtime checks
+# Dry-run prints the command and includes the directory check
 if [ "$DRY_RUN" -eq 1 ]; then
-    printf '+ (cd %q && zip -r %q mosml)\n' "$WIN_ROOT" "$ZIP_PATH"
+    printf '+ [ -d %q ] && (cd %q && zip -r %q mosml)\n' "$WIN_ROOT/mosml" "$WIN_ROOT" "$ZIP_PATH"
 else
     # Verify win root exists
     if [ ! -d "$WIN_ROOT" ]; then
         echo "Error: win-root not found after build: $WIN_ROOT" >&2
+        exit 2
+    fi
+
+    # Verify mosml directory exists inside win root
+    if [ ! -d "$WIN_ROOT/mosml" ]; then
+        echo "Error: expected directory '$WIN_ROOT/mosml' not found. The cross build should have created it." >&2
         exit 2
     fi
 

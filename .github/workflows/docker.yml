@@ -2,7 +2,7 @@ name: Docker Build and Push
 
 on:
     push:
-        branches: ["**"]
+        branches: ["main", "master"]
         tags: ["v*.*.*"]
     workflow_dispatch:
 
@@ -48,7 +48,7 @@ jobs:
                       ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
                       docker.io/${{ secrets.DOCKERHUB_USERNAME }}/mosml
                   tags: |
-                      type=raw,value=latest
+                      type=raw,value=latest,enable={{is_default_branch}}
                       type=semver,pattern={{version}}
 
             - name: Build and push Docker image

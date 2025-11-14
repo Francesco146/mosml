@@ -249,5 +249,6 @@ jobs:
                       artifacts/mosml-macos-x86_64/mosml-macos-x86_64.tar.gz
                       artifacts/mosml-macos-arm64/mosml-macos-arm64.tar.gz
                       artifacts/mosml-windows-installer/mosml-setup-windows-x86_64.exe
+                      artifacts/mosml-windows-x86_64-zip/mosml-windows-x86_64.zip
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
