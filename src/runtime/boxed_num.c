@@ -76,6 +76,14 @@ value boxed_uint64_toword(value v) {                      /* ML */
   return Val_long(UInt64_val(v));
 }
 
+/* Sign-extending variant: interpret the boxed uint64_t as signed
+   2's complement and return the host `long` (ML int) with sign
+   extension from bit 63. This mirrors `boxed_uint64_toword` but
+   casts through int64_t to preserve the sign. */
+value boxed_uint64_toword_signed(value v) {               /* ML */
+  return Val_long((long)((int64_t)UInt64_val(v)));
+}
+
 value boxed_uint64_add(value v1, value v2) {               /* ML */
   return copy_uint64(UInt64_val(v1) + UInt64_val(v2));
 }
@@ -214,8 +222,8 @@ value boxed_int64_sub(value v1, value v2) {               /* ML */
 value boxed_int64_mul(value v1, value v2) {               /* ML */
   int64_t x = Int64_val(v1), y = Int64_val(v2);
   if ((x > 0 && (y > INT64_MAX/x || y < INT64_MIN/x)) ||
-      (x < -1 && (y > INT64_MIN/x || y < INT64_MAX/x) ||
-       (x == -1 && y == INT64_MIN)))
+      (x < -1 && (y > INT64_MIN/x || y < INT64_MAX/x)) ||
+      (x == -1 && y == INT64_MIN))
     raise_overflow();
 
   return copy_int64(x * y);
