@@ -98,7 +98,7 @@ jobs:
               if: matrix.platform == 'linux'
               run: |
                   mkdir -p inno-setup-build
-                  cp -r out/win-root/mosml inno-setup-build/
+                  cp -r out/mosml inno-setup-build/
                   cp src/tools/installer/mosml.iss inno-setup-build/
 
             - name: Build Windows Installer with Inno Setup
