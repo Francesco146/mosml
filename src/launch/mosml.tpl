@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 stdlib=LIBDIR
 mosmlbin=BINDIR
@@ -16,25 +16,26 @@ fi
 # Create history directory if possible (ignore errors gracefully)
 mkdir -p "$(dirname "$history_file")" 2>/dev/null || true
 
-# Check if rlwrap is available and stdin is a terminal
-use_rlwrap=""
-if [ -t 0 ] && command -v rlwrap >/dev/null 2>&1; then
-  use_rlwrap="rlwrap -a -H $history_file -s 1000"
-else
-  echo "Warning: rlwrap not found or input is not a terminal; running without rlwrap." >&2
+# Check if rlwrap is available and the session is interactive.
+# Store rlwrap invocation as an array so we can safely embed quoted paths.
+# We only print warnings when the session is interactive (stdout is a tty).
+use_rlwrap=()
+if command -v rlwrap >/dev/null 2>&1 && [ -t 1 ]; then
+  use_rlwrap=(rlwrap -a -H "$history_file" -s 1000)
+elif [ -t 1 ]; then
+  echo "Warning: rlwrap not found; running without rlwrap." >&2
   echo "For better command line editing, consider installing rlwrap." >&2
-  use_rlwrap=""
 fi
 
-# Disable rlwrap if DISABLE_RLWRAP environment variable is set
+# Disable rlwrap if DISABLE_RLWRAP environment variable is set to 1
 if [ -n "$DISABLE_RLWRAP" ] && [ "$DISABLE_RLWRAP" = "1" ]; then
-  use_rlwrap=""
+  use_rlwrap=()
 fi
 
 while : ; do
   case $1 in
     "")
-      exec $use_rlwrap $mosmlbin/camlrunm $stdlib/mosmltop -stdlib $stdlib $includes $options;;
+      exec "${use_rlwrap[@]}" $mosmlbin/camlrunm $stdlib/mosmltop -stdlib $stdlib $includes $options;;
     -I|-include)
       includes="$includes -I $2"
       shift;;
@@ -62,7 +63,7 @@ while : ; do
     -*)
       echo "Unknown option \"$1\", ignored" >&2;;
     *)
-      exec $use_rlwrap $mosmlbin/camlrunm $stdlib/mosmltop -stdlib $stdlib $includes $options $* ;;
+      exec "${use_rlwrap[@]}" $mosmlbin/camlrunm $stdlib/mosmltop -stdlib $stdlib $includes $options $* ;;
   esac
   shift
 done
