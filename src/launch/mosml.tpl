@@ -27,7 +27,7 @@ else
 fi
 
 # Disable rlwrap if DISABLE_RLWRAP environment variable is set
-if [ -n "$DISABLE_RLWRAP" ] && [ "$DISABLE_RLWRAP" == "1" ]; then
+if [ -n "$DISABLE_RLWRAP" ] && [ "$DISABLE_RLWRAP" = "1" ]; then
   use_rlwrap=""
 fi
 
