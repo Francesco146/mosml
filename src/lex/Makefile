@@ -40,8 +40,24 @@ install:
 	${INSTALL_DATA} mosmllex $(DESTDIR)$(LIBDIR)
 
 install_w32:
-	cat ../launch.w32/header.exe mosmllex > $(DESTDIR)$(BINDIR)/mosmllex.exe
-	chmod a+x $(DESTDIR)$(BINDIR)/mosmllex.exe
+	@set -e; \
+	# Verify inputs exist
+	if [ ! -f ../launch.w32/header.exe ]; then \
+		echo "Error: ../launch.w32/header.exe not found; run 'make install' from top-level or ensure launch.w32 is built." >&2; \
+		exit 1; \
+	fi; \
+	if [ ! -f mosmllex ]; then \
+		echo "Error: mosmllex not found; build the mosmllex target first (make)." >&2; \
+		exit 1; \
+	fi; \
+	# Ensure destination directory exists
+	mkdir -p "$(DESTDIR)$(BINDIR)"; \
+	# Concatenate header and binary into the destination exe
+	cat ../launch.w32/header.exe mosmllex > "$(DESTDIR)$(BINDIR)/mosmllex.exe"; \
+	# Try to set executable bit when supported; ignore failure on filesystems that don't support it
+	if command -v chmod >/dev/null 2>&1; then \
+		chmod a+x "$(DESTDIR)$(BINDIR)/mosmllex.exe" || true; \
+	fi
 
 uninstall:
 	${UNINSTALL_DATA} $(DESTDIR)$(LIBDIR)/mosmllex

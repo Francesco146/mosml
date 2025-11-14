@@ -24,6 +24,14 @@ ifeq ($(GMPLIBDIR),)
     done)
 endif
 
+# Warn the user if we still couldn't locate GMP headers or libraries
+ifeq ($(GMPINCDIR),)
+$(warning GMP header directory not found. Please install GMP development headers or set GMPINCDIR=/path/to/gmp/include)
+endif
+ifeq ($(GMPLIBDIR),)
+$(warning GMP library directory not found. Please install GMP libraries or set GMPLIBDIR=/path/to/gmp/lib)
+endif
+
 include ../../Makefile.inc
 
 #OPTS=-fno-defer-pop
