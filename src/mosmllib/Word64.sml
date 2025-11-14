@@ -52,15 +52,15 @@ in
     fun notb x      = xorb_ x (fromInt ~1);
 
     fun << (w, k) =
-        if toInt k >= 64 orelse toInt k < 0 then ZERO
+        if (not (less_ k (fromInt 64))) orelse (less_ k ZERO) then ZERO
         else lshift_ w k;
 
     fun >> (w, k) =
-        if toInt k >= 64 orelse toInt k < 0 then ZERO
+        if (not (less_ k (fromInt 64))) orelse (less_ k ZERO) then ZERO
         else rshiftuns_ w k;
 
     fun ~>> (w, k) =
-        if toInt k >= 64 orelse toInt k < 0 then
+        if (not (less_ k (fromInt 64))) orelse (less_ k ZERO) then
             if toInt w >= 0 then  (* msbit = 0 *)
                 ZERO
             else      (* msbit = 1 *)
