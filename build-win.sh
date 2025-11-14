@@ -47,6 +47,20 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 
+# Validate JOBS if provided: must be a positive integer
+if [ -n "${JOBS:-}" ]; then
+    if ! [[ "$JOBS" =~ ^[0-9]+$ ]]; then
+        printf "Error: invalid -j value '%s' (must be a positive integer)\n" "$JOBS" >&2
+        usage
+        exit 2
+    fi
+    if [ "$JOBS" -eq 0 ]; then
+        printf "Error: invalid -j value '%s' (must be greater than zero)\n" "$JOBS" >&2
+        usage
+        exit 2
+    fi
+fi
+
 if [ "$VERBOSE" -eq 1 ]; then
     set -x
 fi
@@ -136,22 +150,24 @@ run_cmd mkdir -p "$OUT_DIR"
 ZIP_PATH="$OUT_DIR/mosml-windows-x86_64.zip"
 printf "Creating zip archive %s\n" "$ZIP_PATH"
 
-# In dry-run mode skip checks that require real files
-if [ "$DRY_RUN" -eq 1 ] || [ -d "$WIN_ROOT" ]; then
-    if [ "$DRY_RUN" -eq 1 ] || command -v zip >/dev/null 2>&1; then
-        if [ "$DRY_RUN" -eq 1 ]; then
-            printf '+ (cd %q && zip -r %q mosml)\n' "$WIN_ROOT" "$ZIP_PATH"
-        else
-            (cd "$WIN_ROOT" && zip -r "$ZIP_PATH" mosml)
-            printf "Done: %s\n" "$ZIP_PATH"
-        fi
-    else
+# Dry-run prints the command and skips runtime checks
+if [ "$DRY_RUN" -eq 1 ]; then
+    printf '+ (cd %q && zip -r %q mosml)\n' "$WIN_ROOT" "$ZIP_PATH"
+else
+    # Verify win root exists
+    if [ ! -d "$WIN_ROOT" ]; then
+        echo "Error: win-root not found after build: $WIN_ROOT" >&2
+        exit 2
+    fi
+
+    # Verify zip is available
+    if ! command -v zip >/dev/null 2>&1; then
         echo "Error: 'zip' not found. Please install 'zip' to create archive." >&2
         exit 3
     fi
-else
-    echo "Error: win-root not found after build: $WIN_ROOT" >&2
-    exit 2
+
+    (cd "$WIN_ROOT" && zip -r "$ZIP_PATH" mosml)
+    printf "Done: %s\n" "$ZIP_PATH"
 fi
 
 printf "Build finished. The zip is available in %s (mount a host dir to retrieve it).\n" "$OUT_DIR"
