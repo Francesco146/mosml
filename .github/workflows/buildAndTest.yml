@@ -86,35 +86,6 @@ jobs:
                   docker build --platform=linux/386 -t mosml-win-builder -f Dockerfile.w32 .
                   docker run --rm -v "$(pwd)/out:/out" mosml-win-builder
 
-            - name: Extract Windows binaries from Docker output (on Linux)
-              if: matrix.platform == 'linux'
-              run: |
-                  cd out
-                  unzip -q mosml-windows-x86_64.zip
-                  mv mosml-windows-x86_64.zip ../
-                  cd ..
-
-            - name: Prepare Inno Setup directory (on Linux)
-              if: matrix.platform == 'linux'
-              run: |
-                  mkdir -p inno-setup-build
-                  cp -r out/mosml inno-setup-build/
-                  cp src/tools/installer/mosml.iss inno-setup-build/
-
-            - name: Build Windows Installer with Inno Setup
-              if: matrix.platform == 'linux'
-              uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
-              with:
-                  path: inno-setup-build/mosml.iss
-                  options: /O+
-
-            - name: Rename installer
-              if: matrix.platform == 'linux'
-              run: |
-                  mv inno-setup-build/Output/mosml-setup-*.exe mosml-setup-windows-x86_64.exe || true
-                  ls -la *.exe || echo "No .exe files found in current directory"
-                  ls -la inno-setup-build/Output/ || echo "Output directory not found"
-
             - name: Upload build artifacts
               uses: actions/upload-artifact@v4
               with:
@@ -126,12 +97,56 @@ jobs:
               if: matrix.platform == 'linux'
               uses: actions/upload-artifact@v4
               with:
-                  name: mosml-windows-x86_64
-                  path: mosml-windows-x86_64.zip
+                  name: mosml-windows-x86_64-zip
+                  path: out/mosml-windows-x86_64.zip
                   retention-days: 30
 
+    build-windows-installer:
+        name: Build Windows Installer
+        needs: [build-test]
+        runs-on: windows-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
+
+            - name: Download Windows zip artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: mosml-windows-x86_64-zip
+                  path: .
+
+            - name: Extract Windows binaries
+              run: |
+                  Expand-Archive -Path mosml-windows-x86_64.zip -DestinationPath . -Force
+              shell: pwsh
+
+            - name: Prepare Inno Setup directory
+              run: |
+                  New-Item -ItemType Directory -Path inno-setup-build -Force
+                  Copy-Item -Path mosml -Destination inno-setup-build/ -Recurse
+                  Copy-Item -Path src/tools/installer/mosml.iss -Destination inno-setup-build/
+              shell: pwsh
+
+            - name: Build Windows Installer with Inno Setup
+              uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
+              with:
+                  path: inno-setup-build/mosml.iss
+                  options: /O+
+
+            - name: Rename installer
+              run: |
+                  $installerPath = Get-ChildItem -Path inno-setup-build/Output -Filter "mosml-setup-*.exe" | Select-Object -First 1
+                  if ($installerPath) {
+                      Move-Item -Path $installerPath.FullName -Destination mosml-setup-windows-x86_64.exe
+                      Write-Host "Installer created: mosml-setup-windows-x86_64.exe"
+                  } else {
+                      Write-Host "No installer found in Output directory"
+                      Get-ChildItem -Path inno-setup-build/Output -Recurse
+                  }
+              shell: pwsh
+
             - name: Upload Windows Installer artifact
-              if: matrix.platform == 'linux'
               uses: actions/upload-artifact@v4
               with:
                   name: mosml-windows-installer
@@ -140,7 +155,7 @@ jobs:
 
     create-release:
         name: Create Release
-        needs: [build-test]
+        needs: [build-test, build-windows-installer]
         if: startsWith(github.ref, 'refs/tags/v')
         runs-on: ubuntu-latest
         permissions:
