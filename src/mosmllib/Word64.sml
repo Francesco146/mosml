@@ -167,8 +167,19 @@ in
     fun compare (x, y: word) =
         if less_ x y then LESS else if less_ y x then GREATER else EQUAL;
 
+    (* MAX_INT64 = 0x3FFFFFFFFFFFFFFF = 2^62-1, constructed without 64-bit literal *)
+    val maxInt64 =
+        let
+            (* Construct without large hex literals so 32-bit bootstrap compilers parse it.
+               high = 0x3FFFFFFF = 1073741823
+               low  = (1 << 32) - 1 = 0xFFFFFFFF, computed via shift and subtract *)
+            val high = fromInt 1073741823
+            val low = (lshift_ (fromInt 1) (fromInt 32)) - fromInt 1
+        in lshift_ high (fromInt 32) + low
+        end
+
     fun toInt w =
-        if w > fromWord_ 0wx3FFFFFFFFFFFFFFF then raise Overflow
+        if w > maxInt64 then raise Overflow
         else toIntX w
 
 end
