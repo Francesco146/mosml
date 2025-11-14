@@ -75,13 +75,45 @@ jobs:
                   cd staging
                   tar -czf ../mosml-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz usr/local
 
-            - name: Cross-compile Windows binaries (on Linux)
+            - name: Set up Docker Buildx (on Linux)
+              if: matrix.platform == 'linux'
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build Windows binaries using Docker (on Linux)
               if: matrix.platform == 'linux'
               run: |
-                  mkdir -p win-root
-                  (cd src && make DESTDIR="$(pwd)/../win-root" PREFIX=/mosml cross_w32)
-                  cd win-root
-                  zip -r ../mosml-windows-x86_64.zip mosml
+                  mkdir -p out
+                  docker build --platform=linux/386 -t mosml-win-builder -f Dockerfile.w32 .
+                  docker run --rm -v "$(pwd)/out:/out" mosml-win-builder
+
+            - name: Extract Windows binaries from Docker output (on Linux)
+              if: matrix.platform == 'linux'
+              run: |
+                  cd out
+                  unzip -q mosml-windows-x86_64.zip
+                  mv mosml-windows-x86_64.zip ../
+                  cd ..
+
+            - name: Prepare Inno Setup directory (on Linux)
+              if: matrix.platform == 'linux'
+              run: |
+                  mkdir -p inno-setup-build
+                  cp -r out/win-root/mosml inno-setup-build/
+                  cp src/tools/installer/mosml.iss inno-setup-build/
+
+            - name: Build Windows Installer with Inno Setup
+              if: matrix.platform == 'linux'
+              uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
+              with:
+                  path: inno-setup-build/mosml.iss
+                  options: /O+
+
+            - name: Rename installer
+              if: matrix.platform == 'linux'
+              run: |
+                  mv inno-setup-build/Output/mosml-setup-*.exe mosml-setup-windows-x86_64.exe || true
+                  ls -la *.exe || echo "No .exe files found in current directory"
+                  ls -la inno-setup-build/Output/ || echo "Output directory not found"
 
             - name: Upload build artifacts
               uses: actions/upload-artifact@v4
@@ -96,6 +128,14 @@ jobs:
               with:
                   name: mosml-windows-x86_64
                   path: mosml-windows-x86_64.zip
+                  retention-days: 30
+
+            - name: Upload Windows Installer artifact
+              if: matrix.platform == 'linux'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: mosml-windows-installer
+                  path: mosml-setup-windows-x86_64.exe
                   retention-days: 30
 
     create-release:
@@ -145,6 +185,17 @@ jobs:
 
                   ## Installation
 
+                  ### Windows
+                  Download and run the installer: `mosml-setup-windows-x86_64.exe`
+
+                  The installer will:
+                  - Install Moscow ML to `C:\Program Files\mosml` (or custom location)
+                  - Add Moscow ML to your system PATH
+                  - Create Start Menu shortcuts
+                  - Optionally create desktop shortcuts
+
+                  Alternatively, extract the portable ZIP archive: `mosml-windows-x86_64.zip`
+
                   ### Linux / macOS
                   ```bash
                   # Extract the archive
@@ -181,6 +232,6 @@ jobs:
                       artifacts/mosml-linux-x86_64/mosml-linux-x86_64.tar.gz
                       artifacts/mosml-macos-x86_64/mosml-macos-x86_64.tar.gz
                       artifacts/mosml-macos-arm64/mosml-macos-arm64.tar.gz
-                      artifacts/mosml-windows-x86_64/mosml-windows-x86_64.zip
+                      artifacts/mosml-windows-installer/mosml-setup-windows-x86_64.exe
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
