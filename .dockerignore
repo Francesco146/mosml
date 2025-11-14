@@ -12,11 +12,6 @@ mosmllex
 mosmlyac
 
 # Binaries (top-level names only)
-camlrunm
-mosmlcmp
-mosmllnk
-mosmllex
-mosmlyac
 mosmldep
 cutdeps
 
