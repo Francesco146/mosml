@@ -60,7 +60,7 @@ en.MosMLName=Moscow ML Commandline
 da.MosMLName=Moscow ML Kommandolinje
 it.MosMLName=Moscow ML da riga di comando
 en.UninstallProgram=Uninstall %1
-da.UninstallProgram=Afinstaller %1  
+da.UninstallProgram=Afinstaller %1
 it.UninstallProgram=Disinstalla %1
 
 en.Documentation=Documentation
