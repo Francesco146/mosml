@@ -22,7 +22,7 @@ MANEXT=1
 
 
 # The version
-VERSION=2.10
+VERSION=2.10.5
 
 # Various utility programs
 INSTALL_PROGRAM=cp
