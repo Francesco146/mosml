@@ -2,7 +2,7 @@ name: Build & Test
 
 on:
     push:
-        branches: ["main", "develop"]
+        branches: ["main", "develop", "gnu-tty-stds-and-fixes"] # delete this branch name when merged
         tags: ["v*.*.*"]
     pull_request:
         branches: ["main", "develop"]
